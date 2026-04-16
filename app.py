@@ -104,7 +104,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("""
 <div class="section-card">
     <h2>⚙️ Opciones de análisis</h2>
-    <p>Sube una imagen para analizar</p>
 </div>
 """, unsafe_allow_html=True)
 

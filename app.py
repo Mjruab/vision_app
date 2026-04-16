@@ -84,10 +84,12 @@ def encode_image(image_file):
 # ─────────────────────────────────────────────
 # CONTENEDOR 1 → CARGA (ANTES VACÍO)
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-
-st.markdown("### 🖼️ Cargar imagen")
-st.markdown("Sube una imagen para analizar")
+st.markdown("""
+<div class="section-card">
+    <h2>🖼️ Cargar imagen</h2>
+    <p>Sube una imagen para analizar</p>
+</div>
+""", unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader("", type=["jpg","png","jpeg"])
 
@@ -99,9 +101,12 @@ st.markdown('</div>', unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 # CONTENEDOR 2 → OPCIONES (ANTES VACÍO)
 # ─────────────────────────────────────────────
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
-
-st.markdown("### ⚙️ Opciones de análisis")
+st.markdown("""
+<div class="section-card">
+    <h2>⚙️ Opciones de análisis</h2>
+    <p>Sube una imagen para analizar</p>
+</div>
+""", unsafe_allow_html=True)
 
 show_details = st.toggle("Agregar contexto adicional")
 

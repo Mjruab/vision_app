@@ -13,46 +13,29 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────
-# ESTILOS (MISMA LÍNEA)
+# ESTILOS (MISMO TEMA)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.stApp { background-color: #fffde7; }
 
-.stApp { background-color: #fffde7; color: #333; }
-
-/* Sidebar */
 [data-testid="stSidebar"] {
     background-color: #fff9c4 !important;
     border-right: 1px solid #f9a825;
 }
 
-/* Headers */
 h1 { color: #f57f17 !important; }
-h2, h3 { color: #e65100 !important; }
 
-/* Inputs */
-textarea, input[type="text"] {
-    background-color: #fffff0 !important;
-    border: 1px solid #f9a825 !important;
-    border-radius: 6px !important;
-}
-
-/* Botones */
 .stButton > button {
     background: #f9a825 !important;
     color: white !important;
     border-radius: 6px !important;
-    font-weight: 600 !important;
     width: 100%;
 }
-.stButton > button:hover {
-    background: #f57f17 !important;
-}
 
-/* Cards */
 .header-card {
     background: #fff8e1;
     border-left: 5px solid #f9a825;
@@ -72,20 +55,6 @@ textarea, input[type="text"] {
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# SIDEBAR
-# ─────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## 🤖 Image Analyzer")
-    st.markdown("Analiza imágenes con IA")
-    st.markdown("---")
-
-    st.markdown("### Configuración")
-    ke = st.text_input("API Key OpenAI", type="password")
-
-    if ke:
-        os.environ['OPENAI_API_KEY'] = ke
-
-# ─────────────────────────────────────────────
 # HEADER
 # ─────────────────────────────────────────────
 st.markdown("""
@@ -96,67 +65,75 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
+# API KEY
+# ─────────────────────────────────────────────
+ke = st.text_input("🔑 API Key OpenAI", type="password")
+
+if ke:
+    os.environ['OPENAI_API_KEY'] = ke
+    client = OpenAI(api_key=ke)
+else:
+    st.warning("Por favor ingresa tu API Key")
+
+# ─────────────────────────────────────────────
 # FUNCIÓN
 # ─────────────────────────────────────────────
 def encode_image(image_file):
     return base64.b64encode(image_file.getvalue()).decode("utf-8")
 
 # ─────────────────────────────────────────────
-# CARGA DE IMAGEN
+# CONTENEDOR 1 → CARGA (ANTES VACÍO)
 # ─────────────────────────────────────────────
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
 
 st.markdown("### 🖼️ Cargar imagen")
-uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "png", "jpeg"])
+st.markdown("Sube una imagen para analizar")
+
+uploaded_file = st.file_uploader("", type=["jpg","png","jpeg"])
 
 if uploaded_file:
-    st.image(uploaded_file, caption=uploaded_file.name, use_container_width=True)
+    st.image(uploaded_file, use_container_width=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# OPCIONES
+# CONTENEDOR 2 → OPCIONES (ANTES VACÍO)
 # ─────────────────────────────────────────────
 st.markdown('<div class="section-card">', unsafe_allow_html=True)
 
 st.markdown("### ⚙️ Opciones de análisis")
 
-show_details = st.toggle("Agregar contexto adicional", value=False)
+show_details = st.toggle("Agregar contexto adicional")
 
 additional_details = ""
 if show_details:
     additional_details = st.text_area(
-        "Describe qué quieres saber específicamente:",
-        placeholder="Ej: enfócate en los objetos, emociones, contexto histórico..."
+        "Describe qué quieres analizar:",
+        placeholder="Ej: analiza emociones, estilo, objetos específicos..."
     )
+
+analyze_button = st.button("🚀 Analizar imagen")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# BOTÓN
+# RESULTADO
 # ─────────────────────────────────────────────
-analyze_button = st.button("🔍 Analizar imagen")
-
-# ─────────────────────────────────────────────
-# PROCESAMIENTO
-# ─────────────────────────────────────────────
-if uploaded_file is not None and ke and analyze_button:
-
-    client = OpenAI(api_key=ke)
+if uploaded_file and ke and analyze_button:
 
     with st.spinner("Analizando imagen..."):
         base64_image = encode_image(uploaded_file)
 
-        prompt_text = "Describe detalladamente lo que ves en la imagen en español."
+        prompt = "Describe la imagen en español de forma clara y estructurada."
 
         if additional_details:
-            prompt_text += f"\n\nContexto adicional:\n{additional_details}"
+            prompt += f"\n\nContexto adicional:\n{additional_details}"
 
         messages = [
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": prompt_text},
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image_url",
                         "image_url": {
@@ -167,35 +144,31 @@ if uploaded_file is not None and ke and analyze_button:
             }
         ]
 
-        try:
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown("### 🧠 Resultado del análisis")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🤖 Resultado del análisis")
 
-            full_response = ""
-            placeholder = st.empty()
+        full_response = ""
+        placeholder = st.empty()
 
-            for chunk in client.chat.completions.create(
-                model="gpt-4o",
-                messages=messages,
-                max_tokens=1200,
-                stream=True
-            ):
-                if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-                    placeholder.markdown(full_response + "▌")
+        for chunk in client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            stream=True,
+            max_tokens=1200
+        ):
+            if chunk.choices[0].delta.content:
+                full_response += chunk.choices[0].delta.content
+                placeholder.markdown(full_response + "▌")
 
-            placeholder.markdown(full_response)
+        placeholder.markdown(full_response)
 
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        except Exception as e:
-            st.error(f"Error: {e}")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # VALIDACIONES
 # ─────────────────────────────────────────────
-elif analyze_button and not uploaded_file:
-    st.warning("⚠️ Sube una imagen primero")
-
-elif analyze_button and not ke:
-    st.warning("⚠️ Ingresa tu API Key")
+elif analyze_button:
+    if not uploaded_file:
+        st.warning("⚠️ Sube una imagen primero")
+    if not ke:
+        st.warning("⚠️ Ingresa tu API Key")
